@@ -37,13 +37,22 @@ const teaser = sentences.slice(0, 2).join(' ').trim();
 
 const eraNum = String(era_index).padStart(2, '0');
 
+// Fallback descriptions for images beyond the icrawler_queries array length
+const IMG_FALLBACKS = [
+  `${title} — primary historical reference, ${period}`,
+  `${title} — period garment detail, ${period}`,
+  `${title} — construction or context photograph, ${period}`,
+  `${title} — comparative garment study, ${period}`,
+  `${title} — additional historical reference, ${period}`,
+];
+
 // Image paths — all WebP, thumbs sub-folder for the small versions
 const images = [1, 2, 3, 4, 5].map((n) => {
   const stem = String(n).padStart(6, '0');
   return {
     full:  `/assets/${folder}/${stem}.webp`,
     thumb: `/assets/${folder}/thumbs/${stem}.webp`,
-    alt:   icrawler_queries[n - 1] ?? `${title} — image ${n}`,
+    alt:   icrawler_queries[n - 1] ?? IMG_FALLBACKS[n - 1],
   };
 });
 

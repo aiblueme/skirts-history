@@ -184,6 +184,7 @@ const {
       #side-panel-scrim {
         position: absolute;
         inset: 0;
+        z-index: 1;
         background: rgba(13, 10, 5, 0);
         transition: background var(--transition-panel);
         cursor: pointer;
@@ -198,6 +199,7 @@ const {
         top: 0;
         right: 0;
         bottom: 0;
+        z-index: 2;
         width: min(680px, 90vw);
         background: var(--panel-bg);
         color: var(--panel-fg);
@@ -271,11 +273,22 @@ const {
         padding-left: 1.25rem;
       }
 
+      #panel-body p + p {
+        margin-top: 1.1em;
+      }
+
       /* ============================================================
          SCROLL BEHAVIOUR
          ============================================================ */
       html {
         scroll-behavior: smooth;
+      }
+
+      /* Hide ruler on mobile/tablet — overlaps content */
+      @media (max-width: 900px) {
+        #timeline-ruler {
+          display: none;
+        }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -315,15 +328,33 @@ const {
       const panelClose = document.getElementById('panel-close') as HTMLButtonElement;
       const panelScrim = document.getElementById('side-panel-scrim') as HTMLElement;
 
+      // Escape HTML special chars before inserting into innerHTML
+      function escHtml(s: string): string {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      // Split a prose block into ~3-sentence paragraphs for readability
+      function toParagraphs(text: string): string {
+        const sentences = text.match(/[^.!?]+[.!?]+(?:\s|$)/g) ?? [text];
+        const paras: string[] = [];
+        for (let i = 0; i < sentences.length; i += 3) {
+          paras.push(sentences.slice(i, i + 3).join('').trim());
+        }
+        return paras.map((p) => `<p>${escHtml(p)}</p>`).join('');
+      }
+
       function openPanel(eraIndex: string) {
         const contentEl = document.getElementById(`panel-data-${eraIndex}`);
         if (!contentEl) return;
         panelTitle.textContent = contentEl.dataset.title ?? '';
         panelPeriod.textContent = contentEl.dataset.period ?? '';
-        panelBody.textContent = contentEl.dataset.body ?? '';
+        panelBody.innerHTML = toParagraphs(contentEl.dataset.body ?? '');
         panel.setAttribute('aria-hidden', 'false');
         panel.classList.add('is-open');
         document.body.style.overflow = 'hidden';
+        // Mark the triggering button as expanded
+        const trigger = document.querySelector<HTMLElement>(`[data-panel-trigger="${eraIndex}"]`);
+        trigger?.setAttribute('aria-expanded', 'true');
         panelClose.focus();
       }
 
@@ -331,6 +362,10 @@ const {
         panel.setAttribute('aria-hidden', 'true');
         panel.classList.remove('is-open');
         document.body.style.overflow = '';
+        // Reset all trigger buttons
+        document.querySelectorAll('[data-panel-trigger]').forEach((btn) => {
+          btn.setAttribute('aria-expanded', 'false');
+        });
       }
 
       document.querySelectorAll('[data-panel-trigger]').forEach((btn) => {
@@ -348,6 +383,22 @@ const {
       // === TIMELINE RULER ACTIVE STATE ===
       const eraSections = document.querySelectorAll<HTMLElement>('.era-section');
       const rulerItems = document.querySelectorAll<HTMLElement>('.ruler-item');
+
+      // Observe the masthead: when it's visible, clear all active ruler pips
+      // (prevents pip 01 lighting up before the user has scrolled at all)
+      const masthead = document.querySelector<HTMLElement>('.masthead');
+      if (masthead) {
+        new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                rulerItems.forEach((item) => item.classList.remove('is-active'));
+              }
+            });
+          },
+          { threshold: 0.1 }
+        ).observe(masthead);
+      }
 
       const rulerObserver = new IntersectionObserver(
         (entries) => {
