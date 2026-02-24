@@ -2,23 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EraSection from '../components/EraSection.astro';
 import TimelineRuler from '../components/TimelineRuler.astro';
+import EmailCapture from '../components/EmailCapture.astro';
 import researchData from '../../research.json';
-
-// Directory names mapping era_index → folder name
-const ERA_FOLDERS: Record<number, string> = {
-  1:  '01_ancient_egypt_and_mesopotamia',
-  2:  '02_ancient_greece_and_rome',
-  3:  '03_the_middle_ages',
-  4:  '04_renaissance_and_farthingales',
-  5:  '05_baroque_and_rococo_panniers',
-  6:  '06_victorian_era_crinolines',
-  7:  '07_edwardian_sbend',
-  8:  '08_1920s_flapper',
-  9:  '09_1940s_rationing_and_new_look',
-  10: '10_1960s_miniskirt',
-  11: '11_1980s_power_dressing_and_puffballs',
-  12: '12_21st_century_and_gender_neutrality',
-};
+import { ERA_FOLDERS, ERA_SLUGS } from '../data/eras';
 
 // Sort by era_index to guarantee order
 const eras = [...researchData].sort((a, b) => a.era_index - b.era_index);
@@ -85,11 +71,30 @@ const eras = [...researchData].sort((a, b) => a.era_index - b.era_index);
           key_figures={era.key_figures}
           icrawler_queries={era.icrawler_queries}
           folder={ERA_FOLDERS[era.era_index]}
+          archiveSlug={ERA_SLUGS[era.era_index]}
           isFlipped={i % 2 !== 0}
         />
       ))
     }
   </main>
+
+  <!-- ============================================================
+       TOOL CTA + EMAIL CAPTURE
+       ============================================================ -->
+  <div class="cta-belt">
+    <div class="cta-belt-inner">
+      <div>
+        <p class="t-mono t-upper" style="font-size:0.55rem;color:var(--muted);letter-spacing:0.16em;margin-bottom:0.4rem;">Interactive Tool</p>
+        <h2 class="t-serif" style="font-family:var(--font-serif);font-size:clamp(1.5rem,2.5vw,2.25rem);font-weight:700;color:var(--ink);line-height:1.2;margin-bottom:0.5rem;">Trend Revival Clock</h2>
+        <p style="font-size:0.875rem;color:var(--sepia);max-width:50ch;line-height:1.65;">Apply Laver's Law to any fashion trend. Enter a garment and its peak year — see the full 150-year cycle and when the next revival window opens.</p>
+      </div>
+      <a class="cta-link t-mono t-upper" href="/tools/trend-revival-clock/">Open the Clock &rarr;</a>
+    </div>
+  </div>
+
+  <div class="home-email-section">
+    <EmailCapture />
+  </div>
 
   <!-- ============================================================
        COLOPHON
@@ -304,5 +309,45 @@ const eras = [...researchData].sort((a, b) => a.era_index - b.era_index);
       grid-template-columns: 1fr;
       gap: 1.5rem;
     }
+
+    .cta-belt { padding: 2.5rem 1.5rem; }
+    .home-email-section { padding: 0 1.5rem; }
+  }
+</style>
+<style>
+  /* ── TOOL CTA BELT ── */
+  .cta-belt {
+    padding: 3rem 5rem;
+    border-top: 2px solid var(--ink);
+    background: var(--parchment);
+  }
+  .cta-belt-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .cta-link {
+    display: inline-block;
+    text-decoration: none;
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    padding: 0.85rem 1.5rem;
+    white-space: nowrap;
+    transition: background 160ms ease;
+  }
+  .cta-link:hover { background: var(--crimson); }
+
+  .home-email-section {
+    padding: 0 5rem;
+    max-width: 1400px;
+    margin: 0 auto;
   }
 </style>

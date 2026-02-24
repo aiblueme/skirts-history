@@ -15,6 +15,7 @@ interface Props {
   key_figures: string[];
   icrawler_queries: string[];
   folder: string;
+  archiveSlug: string;
   isFlipped: boolean;
 }
 
@@ -28,6 +29,7 @@ const {
   key_figures,
   icrawler_queries,
   folder,
+  archiveSlug,
   isFlipped,
 } = Astro.props;
 
@@ -90,14 +92,12 @@ const primaryId = `era-primary-${era_index}`;
 
       <p class="era-teaser">{teaser}</p>
 
-      <button
+      <a
         class="era-read-more t-mono t-upper"
-        data-panel-trigger={String(era_index)}
-        aria-controls="side-panel"
-        aria-expanded="false"
+        href={`/archive/${archiveSlug}/`}
       >
         Read the full account &rarr;
-      </button>
+      </a>
 
       <!-- Technical specs -->
       <div class="era-specs">

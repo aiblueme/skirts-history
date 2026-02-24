@@ -1,0 +1,640 @@
+---
+import researchData from '../../../research.json';
+import { ERA_FOLDERS, ERA_SLUGS, SLUG_TO_INDEX } from '../../data/eras';
+import EmailCapture from '../../components/EmailCapture.astro';
+
+interface TechnicalSpecs {
+  fabrics: string[];
+  support_structures: string[];
+  sewing_techniques: string[];
+}
+
+interface Era {
+  era_index: number;
+  title: string;
+  period: string;
+  historical_deep_dive: string;
+  technical_specs: TechnicalSpecs;
+  cultural_impact: string;
+  key_figures: string[];
+  icrawler_queries: string[];
+}
+
+export function getStaticPaths() {
+  return researchData.map((era: Era) => ({
+    params: { slug: ERA_SLUGS[era.era_index] },
+    props: { era },
+  }));
+}
+
+const { era } = Astro.props as { era: Era };
+const folder = ERA_FOLDERS[era.era_index];
+const eraNum = String(era.era_index).padStart(2, '0');
+
+// Prev / Next navigation
+const sorted = [...researchData].sort((a: Era, b: Era) => a.era_index - b.era_index);
+const currentIdx = sorted.findIndex((e: Era) => e.era_index === era.era_index);
+const prevEra = currentIdx > 0 ? sorted[currentIdx - 1] : null;
+const nextEra = currentIdx < sorted.length - 1 ? sorted[currentIdx + 1] : null;
+
+// Format deep dive into paragraphs (3 sentences each)
+function toParagraphs(text: string): string[] {
+  const sentences = text.match(/[^.!?]+[.!?]+(?:\s|$)/g) ?? [text];
+  const paras: string[] = [];
+  for (let i = 0; i < sentences.length; i += 3) {
+    paras.push(sentences.slice(i, i + 3).join('').trim());
+  }
+  return paras;
+}
+const paragraphs = toParagraphs(era.historical_deep_dive);
+
+// Image paths
+const IMG_FALLBACKS = [
+  `${era.title} — primary historical reference, ${era.period}`,
+  `${era.title} — period garment detail, ${era.period}`,
+  `${era.title} — construction or context photograph, ${era.period}`,
+  `${era.title} — comparative garment study, ${era.period}`,
+  `${era.title} — additional historical reference, ${era.period}`,
+];
+const images = [1, 2, 3, 4, 5].map((n) => {
+  const stem = String(n).padStart(6, '0');
+  return {
+    full:  `/assets/${folder}/${stem}.webp`,
+    thumb: `/assets/${folder}/thumbs/${stem}.webp`,
+    alt:   era.icrawler_queries[n - 1] ?? IMG_FALLBACKS[n - 1],
+  };
+});
+
+// SEO
+const pageTitle = `${era.title}: History, Construction & Cultural Impact (${era.period}) — The Material Record`;
+const metaDescription = era.cultural_impact.length > 155
+  ? era.cultural_impact.slice(0, 152) + '...'
+  : era.cultural_impact;
+
+// JSON-LD
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Article',
+      'headline': era.title,
+      'description': metaDescription,
+      'datePublished': '2024-01-01',
+      'dateModified': '2025-01-01',
+      'author': { '@type': 'Organization', 'name': 'The Material Record' },
+      'publisher': {
+        '@type': 'Organization',
+        'name': 'The Material Record',
+        'logo': { '@type': 'ImageObject', 'url': 'http://64.235.43.190:8181/favicon.svg' },
+      },
+      'image': images[0].full,
+      'articleSection': 'Fashion History',
+      'keywords': [era.title, 'fashion history', 'skirt history', era.period, ...era.icrawler_queries].join(', '),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      'itemListElement': [
+        { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': 'http://64.235.43.190:8181/' },
+        { '@type': 'ListItem', 'position': 2, 'name': 'Archive', 'item': 'http://64.235.43.190:8181/archive/' },
+        { '@type': 'ListItem', 'position': 3, 'name': era.title },
+      ],
+    },
+  ],
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={metaDescription} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:type" content="article" />
+    <meta property="og:image" content={images[0].full} />
+    <title>{pageTitle}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --ink: #0d0a05;
+        --parchment: #f2ebd9;
+        --cream: #ede5ce;
+        --rule: #c4ae85;
+        --crimson: #9b1c1c;
+        --sepia: #5c3d1e;
+        --muted: #7a6a52;
+        --font-serif: 'Playfair Display', Georgia, serif;
+        --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+        --font-body: Georgia, 'Times New Roman', serif;
+      }
+
+      html { background: var(--parchment); color: var(--ink); font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+      body { font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.72; background: var(--parchment); overflow-x: hidden; }
+
+      .t-mono { font-family: var(--font-mono); letter-spacing: 0.04em; }
+      .t-upper { text-transform: uppercase; letter-spacing: 0.12em; }
+
+      /* ── NAV BAR ── */
+      .site-nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--parchment);
+        border-bottom: 1px solid var(--rule);
+        padding: 0.75rem 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2rem;
+      }
+      .site-nav-home {
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--ink);
+        text-decoration: none;
+        transition: color 160ms ease;
+      }
+      .site-nav-home:hover { color: var(--crimson); }
+      .breadcrumb {
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .breadcrumb a { color: var(--muted); text-decoration: none; }
+      .breadcrumb a:hover { color: var(--ink); }
+      .breadcrumb-sep { color: var(--rule); }
+
+      /* ── ARTICLE HEADER ── */
+      .article-header {
+        padding: 4rem 3rem 3rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        border-bottom: 1px solid var(--rule);
+      }
+      .article-epoch {
+        display: flex;
+        align-items: baseline;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      .epoch-number {
+        font-family: var(--font-mono);
+        font-size: clamp(5rem, 10vw, 9rem);
+        font-weight: 600;
+        line-height: 1;
+        color: var(--cream);
+        -webkit-text-stroke: 1.5px var(--rule);
+        user-select: none;
+      }
+      .epoch-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .epoch-label {
+        font-family: var(--font-mono);
+        font-size: 0.55rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--muted);
+      }
+      .epoch-period {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        color: var(--sepia);
+        letter-spacing: 0.06em;
+      }
+      .article-title {
+        font-family: var(--font-serif);
+        font-size: clamp(2.5rem, 5vw, 4.5rem);
+        font-weight: 900;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        margin-bottom: 1.5rem;
+      }
+      .article-impact {
+        border-left: 3px solid var(--crimson);
+        padding-left: 1.25rem;
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-size: 1.125rem;
+        color: var(--sepia);
+        line-height: 1.65;
+        max-width: 72ch;
+      }
+
+      /* ── ARTICLE BODY ── */
+      .article-body {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 3rem;
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        column-gap: 4rem;
+        align-items: start;
+        margin-top: 3.5rem;
+      }
+
+      /* Prose column */
+      .article-prose {
+        max-width: 72ch;
+      }
+      .section-label {
+        font-family: var(--font-mono);
+        font-size: 0.55rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--muted);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--rule);
+      }
+      .article-prose p {
+        font-size: 1.0625rem;
+        line-height: 1.8;
+        color: var(--ink);
+        margin-bottom: 1.4em;
+      }
+
+      /* Technical specs */
+      .specs-block {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid var(--ink);
+      }
+      .specs-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        column-gap: 2rem;
+        margin-top: 1rem;
+      }
+      .specs-col-header {
+        font-family: var(--font-mono);
+        font-size: 0.55rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+        margin-bottom: 0.6rem;
+        padding-bottom: 0.3rem;
+        border-bottom: 1px solid var(--rule);
+      }
+      .specs-item {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        line-height: 1.5;
+        color: var(--sepia);
+        padding: 0.2rem 0;
+        border-bottom: 1px solid rgba(196,174,133,0.3);
+      }
+
+      /* Key figures */
+      .figures-block {
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--rule);
+      }
+      .figures-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+      }
+      .figure-tag {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        color: var(--sepia);
+        border: 1px solid var(--rule);
+        padding: 0.2rem 0.6rem;
+        letter-spacing: 0.04em;
+      }
+
+      /* ── GALLERY SIDEBAR ── */
+      .article-gallery {
+        position: sticky;
+        top: 4rem;
+        align-self: start;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .gallery-primary {
+        width: 100%;
+        aspect-ratio: 3/4;
+        overflow: hidden;
+        background: var(--cream);
+      }
+      .gallery-primary img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+        display: block;
+        filter: sepia(8%) contrast(1.05);
+      }
+      .gallery-thumbs {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.4rem;
+      }
+      .gallery-thumb {
+        aspect-ratio: 1;
+        overflow: hidden;
+        background: var(--cream);
+        border: 2px solid transparent;
+        padding: 0;
+        cursor: pointer;
+        transition: border-color 160ms ease;
+      }
+      .gallery-thumb:hover { border-color: var(--rule); }
+      .gallery-thumb.is-active { border-color: var(--crimson); }
+      .gallery-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        filter: sepia(8%) contrast(1.05);
+        transition: filter 200ms ease, transform 200ms ease;
+      }
+      .gallery-thumb:hover img { filter: sepia(0%) contrast(1.08); transform: scale(1.04); }
+      .gallery-thumb.is-active img { filter: sepia(0%) contrast(1.08); }
+
+      /* ── PREV / NEXT ── */
+      .article-nav {
+        max-width: 1200px;
+        margin: 4rem auto 0;
+        padding: 2rem 3rem;
+        border-top: 2px solid var(--ink);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+      }
+      .article-nav-link {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        text-decoration: none;
+        color: var(--ink);
+        transition: color 160ms ease;
+      }
+      .article-nav-link:hover { color: var(--crimson); }
+      .article-nav-link--next { text-align: right; }
+      .nav-direction {
+        font-family: var(--font-mono);
+        font-size: 0.55rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+      }
+      .nav-title {
+        font-family: var(--font-serif);
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .nav-period {
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        color: var(--muted);
+      }
+
+      /* ── EMAIL CAPTURE ── */
+      .email-section {
+        max-width: 1200px;
+        margin: 3rem auto 0;
+        padding: 0 3rem;
+      }
+
+      /* ── COLOPHON ── */
+      .article-footer {
+        margin-top: 4rem;
+        padding: 2rem 3rem;
+        border-top: 1px solid var(--rule);
+        background: var(--parchment);
+      }
+      .article-footer-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .footer-site-name {
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+      }
+      .footer-link {
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        text-decoration: none;
+        transition: color 160ms ease;
+      }
+      .footer-link:hover { color: var(--crimson); }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 900px) {
+        .site-nav { padding: 0.75rem 1.5rem; }
+        .article-header { padding: 2.5rem 1.5rem 2rem; }
+        .article-body {
+          grid-template-columns: 1fr;
+          padding: 0 1.5rem;
+          gap: 2.5rem;
+        }
+        .article-gallery { position: static; }
+        .article-gallery { order: -1; }
+        .specs-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+        .article-nav { grid-template-columns: 1fr; padding: 2rem 1.5rem; }
+        .article-nav-link--next { text-align: left; }
+        .email-section { padding: 0 1.5rem; }
+        .article-footer { padding: 2rem 1.5rem; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { transition-duration: 0.01ms !important; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- NAV -->
+    <nav class="site-nav">
+      <a class="site-nav-home t-mono t-upper" href="/">The Material Record</a>
+      <div class="breadcrumb t-mono">
+        <a href="/">Home</a>
+        <span class="breadcrumb-sep">›</span>
+        <a href="/archive/">Archive</a>
+        <span class="breadcrumb-sep">›</span>
+        <span>{era.title}</span>
+      </div>
+    </nav>
+
+    <!-- ARTICLE HEADER -->
+    <header class="article-header">
+      <div class="article-epoch">
+        <span class="epoch-number">{eraNum}</span>
+        <div class="epoch-meta">
+          <span class="epoch-label t-mono t-upper">Epoch</span>
+          <span class="epoch-period t-mono">{era.period}</span>
+        </div>
+      </div>
+      <h1 class="article-title">{era.title}</h1>
+      <blockquote class="article-impact">{era.cultural_impact}</blockquote>
+    </header>
+
+    <!-- ARTICLE BODY: prose + sticky gallery -->
+    <div class="article-body">
+
+      <!-- PROSE -->
+      <div class="article-prose">
+        <p class="section-label t-mono t-upper">Historical Account</p>
+
+        {paragraphs.map((p) => <p>{p}</p>)}
+
+        <!-- Technical specs -->
+        <div class="specs-block">
+          <p class="section-label t-mono t-upper">Fabrication Data</p>
+          <div class="specs-grid">
+            <div>
+              <p class="specs-col-header t-mono t-upper">Fabrics</p>
+              {era.technical_specs.fabrics.map((f) => <p class="specs-item t-mono">{f}</p>)}
+            </div>
+            <div>
+              <p class="specs-col-header t-mono t-upper">Structures</p>
+              {era.technical_specs.support_structures.map((s) => <p class="specs-item t-mono">{s}</p>)}
+            </div>
+            <div>
+              <p class="specs-col-header t-mono t-upper">Techniques</p>
+              {era.technical_specs.sewing_techniques.map((t) => <p class="specs-item t-mono">{t}</p>)}
+            </div>
+          </div>
+        </div>
+
+        <!-- Key figures -->
+        <div class="figures-block">
+          <p class="section-label t-mono t-upper">Key Figures</p>
+          <div class="figures-list">
+            {era.key_figures.map((f) => <span class="figure-tag t-mono">{f}</span>)}
+          </div>
+        </div>
+      </div>
+
+      <!-- GALLERY SIDEBAR -->
+      <div class="article-gallery" data-gallery="article">
+        <div class="gallery-primary">
+          <img
+            id="article-primary"
+            src={images[0].full}
+            alt={images[0].alt}
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+        <div class="gallery-thumbs" role="list" aria-label={`${era.title} — image gallery`}>
+          {images.map((img, i) => (
+            <button
+              class:list={['gallery-thumb', { 'is-active': i === 0 }]}
+              data-full={img.full}
+              data-alt={img.alt}
+              aria-label={img.alt}
+              role="listitem"
+            >
+              <img src={img.thumb} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+            </button>
+          ))}
+        </div>
+        <p class="t-mono" style="font-size:0.55rem;color:var(--muted);text-align:center;margin-top:0.25rem;letter-spacing:0.08em;">
+          {era.icrawler_queries[0] ?? era.title} · {era.period}
+        </p>
+      </div>
+
+    </div>
+
+    <!-- EMAIL CAPTURE -->
+    <div class="email-section">
+      <EmailCapture />
+    </div>
+
+    <!-- PREV / NEXT NAVIGATION -->
+    <nav class="article-nav" aria-label="Era navigation">
+      {prevEra ? (
+        <a class="article-nav-link" href={`/archive/${ERA_SLUGS[prevEra.era_index]}/`}>
+          <span class="nav-direction t-mono t-upper">← Previous Epoch</span>
+          <span class="nav-title">{prevEra.title}</span>
+          <span class="nav-period t-mono">{prevEra.period}</span>
+        </a>
+      ) : <div />}
+
+      {nextEra ? (
+        <a class="article-nav-link article-nav-link--next" href={`/archive/${ERA_SLUGS[nextEra.era_index]}/`}>
+          <span class="nav-direction t-mono t-upper">Next Epoch →</span>
+          <span class="nav-title">{nextEra.title}</span>
+          <span class="nav-period t-mono">{nextEra.period}</span>
+        </a>
+      ) : <div />}
+    </nav>
+
+    <!-- FOOTER -->
+    <footer class="article-footer">
+      <div class="article-footer-inner">
+        <span class="footer-site-name t-mono t-upper">The Material Record — A History of the Skirt</span>
+        <div style="display:flex;gap:2rem;">
+          <a class="footer-link t-mono t-upper" href="/">Home</a>
+          <a class="footer-link t-mono t-upper" href="/archive/">Archive</a>
+          <a class="footer-link t-mono t-upper" href="/tools/trend-revival-clock/">Trend Clock</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Gallery interaction script -->
+    <script>
+      const gallery = document.querySelector('[data-gallery="article"]');
+      if (gallery) {
+        const primaryImg = document.getElementById('article-primary') as HTMLImageElement;
+        const thumbBtns = gallery.querySelectorAll('.gallery-thumb');
+
+        thumbBtns.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const fullSrc = (btn as HTMLElement).dataset.full!;
+            const fullAlt = (btn as HTMLElement).dataset.alt ?? '';
+            primaryImg.style.opacity = '0';
+            primaryImg.style.transition = 'opacity 180ms ease';
+            setTimeout(() => {
+              primaryImg.src = fullSrc;
+              primaryImg.alt = fullAlt;
+              primaryImg.style.opacity = '1';
+            }, 180);
+            thumbBtns.forEach((b) => b.classList.remove('is-active'));
+            btn.classList.add('is-active');
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

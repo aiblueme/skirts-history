@@ -1,0 +1,657 @@
+---
+import researchData from '../../../research.json';
+import { ERA_SLUGS } from '../../data/eras';
+
+const pageTitle = "Trend Revival Clock — When Will Your Fashion Come Back? | The Material Record";
+const metaDescription = "Apply Laver's Law to any fashion trend. Enter a garment and its peak year to see the full 150-year cycle — and when the next revival window opens.";
+
+const eras = [...researchData].sort((a, b) => a.era_index - b.era_index);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={metaDescription} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <title>{pageTitle}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --ink: #0d0a05;
+        --parchment: #f2ebd9;
+        --cream: #ede5ce;
+        --rule: #c4ae85;
+        --crimson: #9b1c1c;
+        --sepia: #5c3d1e;
+        --muted: #7a6a52;
+        --font-serif: 'Playfair Display', Georgia, serif;
+        --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+        --font-body: Georgia, 'Times New Roman', serif;
+      }
+
+      html { background: var(--parchment); color: var(--ink); font-size: 16px; -webkit-font-smoothing: antialiased; }
+      body { font-family: var(--font-body); line-height: 1.72; background: var(--parchment); overflow-x: hidden; }
+      .t-mono { font-family: var(--font-mono); }
+      .t-upper { text-transform: uppercase; letter-spacing: 0.12em; }
+
+      /* NAV */
+      .site-nav {
+        position: sticky; top: 0; z-index: 100;
+        background: var(--parchment); border-bottom: 1px solid var(--rule);
+        padding: 0.75rem 3rem;
+        display: flex; align-items: center; justify-content: space-between; gap: 2rem;
+      }
+      .site-nav-home {
+        font-family: var(--font-mono); font-size: 0.6rem; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.16em;
+        color: var(--ink); text-decoration: none; transition: color 160ms ease;
+      }
+      .site-nav-home:hover { color: var(--crimson); }
+      .breadcrumb {
+        font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted);
+        letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem;
+      }
+      .breadcrumb a { color: var(--muted); text-decoration: none; }
+      .breadcrumb a:hover { color: var(--ink); }
+      .breadcrumb-sep { color: var(--rule); }
+
+      /* PAGE HEADER */
+      .tool-header {
+        max-width: 1200px; margin: 0 auto;
+        padding: 4rem 3rem 2.5rem;
+        border-bottom: 1px solid var(--rule);
+      }
+      .tool-kicker {
+        font-family: var(--font-mono); font-size: 0.6rem;
+        text-transform: uppercase; letter-spacing: 0.18em;
+        color: var(--crimson); margin-bottom: 0.75rem;
+      }
+      .tool-title {
+        font-family: var(--font-serif); font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 900; line-height: 1.05; letter-spacing: -0.02em;
+        color: var(--ink); margin-bottom: 1rem;
+      }
+      .tool-subtitle {
+        font-size: 1.0625rem; line-height: 1.72; color: var(--sepia); max-width: 65ch;
+      }
+      .lavers-credit {
+        margin-top: 1rem;
+        font-family: var(--font-mono); font-size: 0.6rem;
+        color: var(--muted); letter-spacing: 0.06em;
+        border-left: 2px solid var(--rule); padding-left: 0.75rem;
+      }
+
+      /* INPUT FORM */
+      .tool-form-section {
+        max-width: 1200px; margin: 3rem auto 0;
+        padding: 0 3rem;
+      }
+      .form-label-row {
+        font-family: var(--font-mono); font-size: 0.55rem;
+        text-transform: uppercase; letter-spacing: 0.16em;
+        color: var(--muted); margin-bottom: 0.75rem;
+      }
+      .tool-form {
+        display: flex; gap: 0; border: 1.5px solid var(--ink);
+        max-width: 680px;
+      }
+      .form-trend-input, .form-year-input {
+        background: transparent; border: none; outline: none;
+        font-family: var(--font-mono); color: var(--ink);
+        padding: 0.85rem 1rem;
+      }
+      .form-trend-input {
+        flex: 1; font-size: 0.9rem; border-right: 1px solid var(--rule);
+      }
+      .form-trend-input::placeholder { color: var(--muted); }
+      .form-year-input {
+        width: 110px; font-size: 0.9rem; text-align: center;
+        border-right: 1px solid var(--rule);
+      }
+      .form-year-input::-webkit-inner-spin-button,
+      .form-year-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+      .form-year-input::placeholder { color: var(--muted); }
+      .form-submit {
+        background: var(--ink); color: var(--parchment); border: none;
+        padding: 0.85rem 1.5rem; font-family: var(--font-mono);
+        font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em;
+        cursor: pointer; white-space: nowrap; transition: background 160ms ease;
+      }
+      .form-submit:hover { background: var(--crimson); }
+
+      /* ── RESULTS ── */
+      #results { display: none; }
+      #results.is-visible {
+        display: block;
+        max-width: 1200px; margin: 3rem auto 0; padding: 0 3rem;
+      }
+
+      /* Status card */
+      .status-card {
+        border: 1.5px solid var(--ink); padding: 1.75rem 2rem;
+        display: grid; grid-template-columns: auto 1fr; gap: 1.5rem;
+        align-items: center; margin-bottom: 2.5rem;
+        max-width: 680px;
+      }
+      .status-stage-name {
+        font-family: var(--font-serif); font-size: 2rem;
+        font-weight: 700; color: var(--crimson); line-height: 1.1;
+        min-width: 8rem;
+      }
+      .status-label {
+        font-family: var(--font-mono); font-size: 0.55rem;
+        text-transform: uppercase; letter-spacing: 0.14em;
+        color: var(--muted); margin-bottom: 0.3rem;
+      }
+      .status-description {
+        font-size: 0.9rem; line-height: 1.6; color: var(--sepia);
+      }
+      .status-years {
+        font-family: var(--font-mono); font-size: 0.7rem;
+        color: var(--muted); margin-top: 0.35rem;
+      }
+
+      /* Timeline */
+      .timeline-label {
+        font-family: var(--font-mono); font-size: 0.55rem;
+        text-transform: uppercase; letter-spacing: 0.18em;
+        color: var(--muted); margin-bottom: 1rem;
+        padding-bottom: 0.5rem; border-bottom: 1px solid var(--rule);
+      }
+      .timeline-scroll {
+        overflow-x: auto;
+        padding-bottom: 1rem;
+      }
+      .timeline-track {
+        position: relative;
+        height: 120px;
+        min-width: 900px;
+      }
+      .timeline-axis {
+        position: absolute;
+        left: 0; right: 0;
+        top: 60px;
+        height: 1px;
+        background: var(--rule);
+      }
+      .timeline-stage {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .stage-bar {
+        position: absolute;
+        top: 25px;
+        width: 2px;
+        height: 35px;
+        background: var(--rule);
+      }
+      .stage-bar--peak { background: var(--crimson); width: 3px; }
+      .stage-bar--today { background: var(--ink); width: 2px; }
+      .stage-dot {
+        position: absolute;
+        top: 54px;
+        width: 6px; height: 6px;
+        background: var(--rule);
+        border-radius: 50%;
+        transform: translateX(-2px);
+      }
+      .stage-dot--peak { background: var(--crimson); width: 10px; height: 10px; top: 55px; transform: translateX(-4px); }
+      .stage-dot--today { background: var(--ink); }
+      .stage-year {
+        position: absolute;
+        top: 68px;
+        font-family: var(--font-mono); font-size: 0.6rem;
+        color: var(--muted); white-space: nowrap;
+        transform: translateX(-50%);
+      }
+      .stage-year--peak { color: var(--crimson); font-weight: 600; }
+      .stage-year--today { color: var(--ink); font-weight: 600; }
+      .stage-name {
+        position: absolute;
+        top: 0;
+        font-family: var(--font-mono); font-size: 0.5rem;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        color: var(--muted); white-space: nowrap;
+        transform: translateX(-50%);
+      }
+      .stage-name--peak { color: var(--crimson); }
+      .stage-name--today { color: var(--ink); }
+
+      /* Revival windows */
+      .revival-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2.5rem;
+      }
+      .revival-section-label {
+        font-family: var(--font-mono); font-size: 0.55rem;
+        text-transform: uppercase; letter-spacing: 0.18em;
+        color: var(--muted); margin-bottom: 1rem;
+        padding-bottom: 0.5rem; border-bottom: 1px solid var(--rule);
+        grid-column: 1 / -1;
+      }
+      .revival-card {
+        border: 1px solid var(--rule); padding: 1rem 1.25rem;
+        display: flex; flex-direction: column; gap: 0.2rem;
+      }
+      .revival-card--next {
+        border-color: var(--crimson);
+      }
+      .revival-card-label {
+        font-family: var(--font-mono); font-size: 0.5rem;
+        text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted);
+      }
+      .revival-card-year {
+        font-family: var(--font-serif); font-size: 1.75rem;
+        font-weight: 700; color: var(--ink); line-height: 1;
+      }
+      .revival-card--next .revival-card-year { color: var(--crimson); }
+      .revival-card-note {
+        font-family: var(--font-mono); font-size: 0.6rem;
+        color: var(--muted); margin-top: 0.15rem;
+      }
+
+      /* Archive link block */
+      .archive-links {
+        margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--rule);
+      }
+      .archive-links-label {
+        font-family: var(--font-mono); font-size: 0.55rem;
+        text-transform: uppercase; letter-spacing: 0.18em;
+        color: var(--muted); margin-bottom: 1rem;
+      }
+      .archive-links-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 0.5rem;
+      }
+      .archive-link {
+        display: flex; flex-direction: column; gap: 0.1rem;
+        text-decoration: none; color: var(--ink);
+        border: 1px solid var(--rule); padding: 0.6rem 0.75rem;
+        transition: border-color 160ms ease, color 160ms ease;
+      }
+      .archive-link:hover { border-color: var(--crimson); color: var(--crimson); }
+      .archive-link-period {
+        font-family: var(--font-mono); font-size: 0.5rem;
+        color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
+      }
+      .archive-link-title {
+        font-family: var(--font-serif); font-size: 0.85rem; font-weight: 700; line-height: 1.2;
+      }
+
+      /* FOOTER */
+      .tool-footer {
+        margin-top: 5rem; padding: 2rem 3rem;
+        border-top: 1px solid var(--rule);
+      }
+      .tool-footer-inner {
+        max-width: 1200px; margin: 0 auto;
+        display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+      }
+      .footer-site-name {
+        font-family: var(--font-mono); font-size: 0.6rem;
+        text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted);
+      }
+      .footer-link {
+        font-family: var(--font-mono); font-size: 0.6rem;
+        text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
+        text-decoration: none; transition: color 160ms ease;
+      }
+      .footer-link:hover { color: var(--crimson); }
+
+      @media (max-width: 900px) {
+        .site-nav { padding: 0.75rem 1.5rem; }
+        .tool-header { padding: 2.5rem 1.5rem 2rem; }
+        .tool-form-section { padding: 0 1.5rem; }
+        .tool-form { flex-wrap: wrap; }
+        .form-trend-input { width: 100%; border-right: none; border-bottom: 1px solid var(--rule); }
+        .form-year-input { width: 50%; border-right: 1px solid var(--rule); }
+        .form-submit { flex: 1; }
+        #results.is-visible { padding: 0 1.5rem; }
+        .status-card { grid-template-columns: 1fr; }
+        .tool-footer { padding: 2rem 1.5rem; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { transition-duration: 0.01ms !important; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- NAV -->
+    <nav class="site-nav">
+      <a class="site-nav-home t-mono t-upper" href="/">The Material Record</a>
+      <div class="breadcrumb t-mono">
+        <a href="/">Home</a>
+        <span class="breadcrumb-sep">›</span>
+        <span>Trend Revival Clock</span>
+      </div>
+    </nav>
+
+    <!-- HEADER -->
+    <header class="tool-header">
+      <p class="tool-kicker t-mono t-upper">Interactive Tool</p>
+      <h1 class="tool-title">Trend Revival Clock</h1>
+      <p class="tool-subtitle">
+        Fashion moves in cycles. Enter any trend and its peak year — this tool
+        maps its full 150-year arc using Laver's Law, identifies where it sits
+        today, and calculates the next revival window.
+      </p>
+      <p class="lavers-credit t-mono">
+        Based on Laver's Law (James Laver, <em>Taste and Fashion</em>, 1937) —
+        the observation that the same garment cycles through indecency, absurdity, charm, and revival
+        on a predictable ~50-year rhythm.
+      </p>
+    </header>
+
+    <!-- FORM -->
+    <section class="tool-form-section">
+      <p class="form-label-row t-mono t-upper">Enter a trend to analyse</p>
+      <div class="tool-form">
+        <input
+          id="trend-input"
+          class="form-trend-input t-mono"
+          type="text"
+          placeholder="e.g. Mini skirt, shoulder pads, corset…"
+          autocomplete="off"
+          aria-label="Fashion trend name"
+        />
+        <input
+          id="year-input"
+          class="form-year-input t-mono"
+          type="number"
+          placeholder="Year"
+          min="1500"
+          max="2030"
+          aria-label="Peak year of the trend"
+        />
+        <button id="calculate-btn" class="form-submit t-mono t-upper" type="button">
+          Calculate &rarr;
+        </button>
+      </div>
+    </section>
+
+    <!-- RESULTS (hidden until calculation) -->
+    <section id="results" aria-live="polite">
+      <div class="timeline-label t-mono t-upper" id="timeline-heading">
+        <!-- e.g. "Mini skirt — 150-year cycle from 1960" -->
+      </div>
+
+      <!-- Status card -->
+      <div class="status-card" id="status-card">
+        <div>
+          <p class="status-label t-mono t-upper">Current Status (2026)</p>
+          <p class="status-stage-name" id="status-name">—</p>
+        </div>
+        <div>
+          <p class="status-label t-mono t-upper">What this means</p>
+          <p class="status-description" id="status-desc">—</p>
+          <p class="status-years t-mono" id="status-years">—</p>
+        </div>
+      </div>
+
+      <!-- Timeline visualisation -->
+      <div class="timeline-label t-mono t-upper">Full 150-year cycle</div>
+      <div class="timeline-scroll">
+        <div class="timeline-track" id="timeline-track">
+          <div class="timeline-axis"></div>
+          <!-- Stages injected by JS -->
+        </div>
+      </div>
+
+      <!-- Revival windows -->
+      <div class="revival-grid" id="revival-grid">
+        <div class="revival-section-label t-mono t-upper">Revival Windows</div>
+        <!-- Cards injected by JS -->
+      </div>
+
+      <!-- Archive links -->
+      <div class="archive-links">
+        <p class="archive-links-label t-mono t-upper">Explore related eras in the archive</p>
+        <div class="archive-links-grid" id="archive-links-grid">
+          {eras.map((era) => (
+            <a
+              class="archive-link"
+              href={`/archive/${ERA_SLUGS[era.era_index]}/`}
+              data-period-start={era.period.match(/\d+/)?.[0] ?? '0'}
+              data-era-index={era.era_index}
+            >
+              <span class="archive-link-period t-mono t-upper">{era.period}</span>
+              <span class="archive-link-title">{era.title}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="tool-footer">
+      <div class="tool-footer-inner">
+        <span class="footer-site-name t-mono t-upper">The Material Record — A History of the Skirt</span>
+        <div style="display:flex;gap:2rem;">
+          <a class="footer-link t-mono t-upper" href="/">Home</a>
+          <a class="footer-link t-mono t-upper" href="/archive/">Archive</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // ── LAVER'S LAW STAGES (offset from peak year) ──────────────────────────
+      const STAGES = [
+        { offset: -150, name: 'Indecent',    desc: 'Far ahead of its time — shocking or transgressive to its contemporaries.' },
+        { offset: -70,  name: 'Shameless',   desc: 'Still considered daring or provocative by the mainstream.' },
+        { offset: -40,  name: 'Outré',       desc: 'Avant-garde. Only the fashion-forward dare to wear it.' },
+        { offset: -20,  name: 'Smart',       desc: 'Approaching the peak of fashion. The press is paying attention.' },
+        { offset:  0,   name: 'Peak',        desc: 'The garment is at the height of its popularity.', isPeak: true },
+        { offset: +10,  name: 'Dowdy',       desc: 'Just out of fashion. Feels slightly dated to the discerning eye.' },
+        { offset: +20,  name: 'Hideous',     desc: 'Embarrassingly unfashionable. People apologise for wearing it.' },
+        { offset: +50,  name: 'Ridiculous',  desc: 'So out it is almost camp. The stuff of fancy dress.' },
+        { offset: +70,  name: 'Amusing',     desc: 'Nostalgia begins. Ironic wear and retro appreciation emerge.' },
+        { offset: +100, name: 'Quaint',      desc: 'Charming vintage. Museum pieces and collector interest.' },
+        { offset: +150, name: 'Charming',    desc: 'Timeless vintage. Full cultural rehabilitation.' },
+      ];
+
+      const TODAY = 2026;
+
+      function getCurrentStage(peakYear: number) {
+        const elapsed = TODAY - peakYear;
+        // Find which stage bracket we're in
+        for (let i = STAGES.length - 1; i >= 0; i--) {
+          if (elapsed >= STAGES[i].offset) {
+            return { stage: STAGES[i], elapsed };
+          }
+        }
+        return { stage: STAGES[0], elapsed };
+      }
+
+      function getRevivalWindows(peakYear: number): { year: number; label: string; isNext: boolean }[] {
+        // Trends revive every ~50 years (peak → ridiculous → amusing cycle)
+        const windows = [];
+        const revivals = [-100, -50, 0, 50, 100, 150];
+        for (const offset of revivals) {
+          const year = peakYear + offset;
+          const label = offset === 0 ? 'Original peak'
+            : offset < 0 ? `${Math.abs(offset)}-year precursor`
+            : `${offset}-year revival`;
+          windows.push({ year, label, isNext: year > TODAY });
+        }
+        return windows;
+      }
+
+      function buildTimeline(peakYear: number) {
+        const track = document.getElementById('timeline-track')!;
+        // Clear previous (keep axis)
+        track.querySelectorAll('.timeline-stage').forEach(el => el.remove());
+
+        const start = peakYear - 160;
+        const end   = peakYear + 160;
+        const range = end - start;
+
+        function xPct(year: number) {
+          return ((year - start) / range * 100).toFixed(2) + '%';
+        }
+
+        // Draw each stage
+        STAGES.forEach(stage => {
+          const year = peakYear + stage.offset;
+          const el = document.createElement('div');
+          el.className = 'timeline-stage';
+          el.style.left = xPct(year);
+
+          const bar = document.createElement('div');
+          bar.className = 'stage-bar' + (stage.isPeak ? ' stage-bar--peak' : '');
+
+          const dot = document.createElement('div');
+          dot.className = 'stage-dot' + (stage.isPeak ? ' stage-dot--peak' : '');
+
+          const yearLabel = document.createElement('div');
+          yearLabel.className = 'stage-year' + (stage.isPeak ? ' stage-year--peak' : '');
+          yearLabel.textContent = String(year);
+
+          const nameLabel = document.createElement('div');
+          nameLabel.className = 'stage-name' + (stage.isPeak ? ' stage-name--peak' : '');
+          nameLabel.textContent = stage.name;
+
+          el.append(bar, dot, yearLabel, nameLabel);
+          track.appendChild(el);
+        });
+
+        // Today marker
+        if (TODAY >= start && TODAY <= end) {
+          const todayEl = document.createElement('div');
+          todayEl.className = 'timeline-stage';
+          todayEl.style.left = xPct(TODAY);
+
+          const bar = document.createElement('div');
+          bar.className = 'stage-bar stage-bar--today';
+          const dot = document.createElement('div');
+          dot.className = 'stage-dot stage-dot--today';
+          const yearLabel = document.createElement('div');
+          yearLabel.className = 'stage-year stage-year--today';
+          yearLabel.textContent = 'Today';
+
+          todayEl.append(bar, dot, yearLabel);
+          track.appendChild(todayEl);
+        }
+      }
+
+      function buildRevivalGrid(peakYear: number) {
+        const grid = document.getElementById('revival-grid')!;
+        // Clear previous (keep label)
+        grid.querySelectorAll('.revival-card').forEach(el => el.remove());
+
+        const windows = getRevivalWindows(peakYear);
+        const nextRevival = windows.find(w => w.isNext);
+
+        windows.forEach(w => {
+          const card = document.createElement('div');
+          card.className = 'revival-card' + (w === nextRevival ? ' revival-card--next' : '');
+
+          const labelEl = document.createElement('p');
+          labelEl.className = 'revival-card-label t-mono t-upper';
+          labelEl.textContent = w === nextRevival ? '→ Next Revival' : w.label;
+
+          const yearEl = document.createElement('p');
+          yearEl.className = 'revival-card-year';
+          yearEl.textContent = w.year < TODAY ? String(w.year) : String(w.year);
+
+          const noteEl = document.createElement('p');
+          noteEl.className = 'revival-card-note t-mono';
+          const yearsFromNow = w.year - TODAY;
+          noteEl.textContent = w.year < TODAY
+            ? `${Math.abs(yearsFromNow)} years ago`
+            : w.year === TODAY
+            ? 'This year'
+            : `In ${yearsFromNow} years`;
+
+          card.append(labelEl, yearEl, noteEl);
+          grid.appendChild(card);
+        });
+      }
+
+      function highlightArchiveLinks(peakYear: number) {
+        const links = document.querySelectorAll<HTMLAnchorElement>('#archive-links-grid .archive-link');
+        links.forEach(link => {
+          link.style.opacity = '0.4';
+          link.style.borderColor = 'var(--rule)';
+        });
+
+        // Highlight eras that contain the peak year ± 30 years
+        links.forEach(link => {
+          const periodText = link.querySelector('.archive-link-period')?.textContent ?? '';
+          const years = periodText.match(/\d{3,4}/g)?.map(Number) ?? [];
+          if (years.length >= 2) {
+            const [startY, endY] = years;
+            if (peakYear >= startY - 30 && peakYear <= endY + 30) {
+              link.style.opacity = '1';
+              link.style.borderColor = 'var(--rule)';
+            }
+          }
+        });
+      }
+
+      function calculate() {
+        const trendInput = document.getElementById('trend-input') as HTMLInputElement;
+        const yearInput  = document.getElementById('year-input') as HTMLInputElement;
+        const results    = document.getElementById('results')!;
+
+        const trend    = trendInput.value.trim();
+        const peakYear = parseInt(yearInput.value, 10);
+
+        if (!trend || isNaN(peakYear) || peakYear < 1400 || peakYear > 2030) {
+          yearInput.focus();
+          yearInput.style.outline = '2px solid var(--crimson)';
+          setTimeout(() => { yearInput.style.outline = ''; }, 1500);
+          return;
+        }
+
+        // Heading
+        document.getElementById('timeline-heading')!.textContent =
+          `"${trend}" — 150-year Laver cycle, peak ${peakYear}`;
+
+        // Status
+        const { stage, elapsed } = getCurrentStage(peakYear);
+        document.getElementById('status-name')!.textContent = stage.name;
+        document.getElementById('status-desc')!.textContent = stage.desc;
+        document.getElementById('status-years')!.textContent =
+          elapsed < 0
+            ? `${Math.abs(elapsed)} years before peak (${peakYear - Math.abs(elapsed)} → ${peakYear})`
+            : `${elapsed} years since peak in ${peakYear}`;
+
+        buildTimeline(peakYear);
+        buildRevivalGrid(peakYear);
+        highlightArchiveLinks(peakYear);
+
+        results.classList.add('is-visible');
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      document.getElementById('calculate-btn')!.addEventListener('click', calculate);
+      document.getElementById('year-input')!.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') calculate();
+      });
+      document.getElementById('trend-input')!.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') calculate();
+      });
+    </script>
+  </body>
+</html>

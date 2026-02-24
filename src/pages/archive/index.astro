@@ -1,0 +1,289 @@
+---
+import researchData from '../../../research.json';
+import { ERA_FOLDERS, ERA_SLUGS } from '../../data/eras';
+import EmailCapture from '../../components/EmailCapture.astro';
+
+const eras = [...researchData].sort((a, b) => a.era_index - b.era_index);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A documented archive of skirt fashion across 12 epochs — from Ancient Egypt to the 21st century. Five thousand years of fabrication, construction, and cultural impact." />
+    <title>Archive — The History of the Skirt in Twelve Epochs | The Material Record</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      :root {
+        --ink: #0d0a05; --parchment: #f2ebd9; --cream: #ede5ce;
+        --rule: #c4ae85; --crimson: #9b1c1c; --sepia: #5c3d1e; --muted: #7a6a52;
+        --font-serif: 'Playfair Display', Georgia, serif;
+        --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+        --font-body: Georgia, 'Times New Roman', serif;
+      }
+      html { background: var(--parchment); color: var(--ink); font-size: 16px; -webkit-font-smoothing: antialiased; }
+      body { font-family: var(--font-body); line-height: 1.72; background: var(--parchment); overflow-x: hidden; }
+      .t-mono { font-family: var(--font-mono); letter-spacing: 0.04em; }
+      .t-upper { text-transform: uppercase; letter-spacing: 0.12em; }
+
+      .site-nav {
+        position: sticky; top: 0; z-index: 100;
+        background: var(--parchment); border-bottom: 1px solid var(--rule);
+        padding: 0.75rem 3rem; display: flex; align-items: center; justify-content: space-between;
+      }
+      .site-nav-home {
+        font-family: var(--font-mono); font-size: 0.6rem; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.16em;
+        color: var(--ink); text-decoration: none; transition: color 160ms;
+      }
+      .site-nav-home:hover { color: var(--crimson); }
+
+      .archive-header {
+        max-width: 1200px; margin: 0 auto;
+        padding: 4rem 3rem 2.5rem;
+        border-bottom: 2px solid var(--ink);
+      }
+      .archive-kicker {
+        font-family: var(--font-mono); font-size: 0.6rem;
+        text-transform: uppercase; letter-spacing: 0.18em;
+        color: var(--muted); margin-bottom: 0.75rem;
+      }
+      .archive-title {
+        font-family: var(--font-serif); font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 900; line-height: 1.05; letter-spacing: -0.02em;
+        color: var(--ink); margin-bottom: 1rem;
+      }
+      .archive-sub {
+        font-size: 1rem; color: var(--sepia); max-width: 60ch; line-height: 1.7;
+      }
+      .archive-meta {
+        display: flex; gap: 3rem; margin-top: 1.5rem;
+        border-top: 1px solid var(--rule); padding-top: 1.25rem;
+      }
+      .archive-meta-item { display: flex; flex-direction: column; gap: 0.15rem; }
+      .archive-meta-value {
+        font-family: var(--font-mono); font-size: 1.5rem; font-weight: 600;
+        color: var(--ink); line-height: 1;
+      }
+      .archive-meta-label {
+        font-family: var(--font-mono); font-size: 0.5rem;
+        text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted);
+      }
+
+      /* ERA GRID */
+      .archive-grid {
+        max-width: 1200px; margin: 0 auto;
+        padding: 3rem 3rem;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+      }
+      .archive-card {
+        display: block; text-decoration: none; color: var(--ink);
+        border: 1px solid var(--rule);
+        margin: -1px 0 0 -1px; /* overlap borders */
+        padding: 1.75rem;
+        transition: background 160ms ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .archive-card:hover { background: var(--cream); }
+      .archive-card:hover .card-arrow { opacity: 1; transform: translateX(0); }
+
+      .card-epoch {
+        font-family: var(--font-mono); font-size: 0.5rem;
+        text-transform: uppercase; letter-spacing: 0.16em;
+        color: var(--muted); margin-bottom: 0.25rem;
+      }
+      .card-number {
+        font-family: var(--font-mono); font-size: 3rem; font-weight: 600;
+        line-height: 1; color: var(--cream);
+        -webkit-text-stroke: 1px var(--rule);
+        margin-bottom: 0.5rem;
+        user-select: none;
+      }
+      .card-period {
+        font-family: var(--font-mono); font-size: 0.6rem;
+        color: var(--sepia); letter-spacing: 0.06em; margin-bottom: 0.5rem;
+      }
+      .card-title {
+        font-family: var(--font-serif); font-size: 1.25rem;
+        font-weight: 700; line-height: 1.2; color: var(--ink);
+        margin-bottom: 0.65rem;
+      }
+      .card-impact {
+        font-size: 0.8rem; line-height: 1.6; color: var(--sepia);
+        display: -webkit-box; -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical; overflow: hidden;
+      }
+      .card-thumb {
+        width: 100%; aspect-ratio: 16/9; object-fit: cover;
+        object-position: center top;
+        display: block; margin-bottom: 1rem;
+        filter: sepia(8%) contrast(1.05);
+        transition: filter 200ms ease;
+      }
+      .archive-card:hover .card-thumb { filter: sepia(0%) contrast(1.08); }
+      .card-arrow {
+        position: absolute; bottom: 1.25rem; right: 1.25rem;
+        font-family: var(--font-mono); font-size: 0.55rem;
+        text-transform: uppercase; letter-spacing: 0.12em;
+        color: var(--crimson); opacity: 0;
+        transform: translateX(-6px);
+        transition: opacity 160ms ease, transform 160ms ease;
+      }
+
+      .email-section {
+        max-width: 1200px; margin: 0 auto; padding: 0 3rem;
+      }
+
+      .tool-cta {
+        max-width: 1200px; margin: 0 auto;
+        padding: 2.5rem 3rem;
+        border-top: 1px solid var(--rule);
+        display: flex; align-items: center; justify-content: space-between; gap: 2rem;
+        flex-wrap: wrap;
+      }
+      .tool-cta-text { max-width: 55ch; }
+      .tool-cta-label {
+        font-family: var(--font-mono); font-size: 0.55rem;
+        text-transform: uppercase; letter-spacing: 0.16em;
+        color: var(--muted); margin-bottom: 0.4rem;
+      }
+      .tool-cta-title {
+        font-family: var(--font-serif); font-size: 1.5rem;
+        font-weight: 700; color: var(--ink); margin-bottom: 0.5rem;
+      }
+      .tool-cta-desc {
+        font-size: 0.875rem; color: var(--sepia); line-height: 1.65;
+      }
+      .tool-cta-link {
+        flex-shrink: 0;
+        display: inline-block; text-decoration: none;
+        background: var(--ink); color: var(--parchment);
+        font-family: var(--font-mono); font-size: 0.6rem;
+        text-transform: uppercase; letter-spacing: 0.14em;
+        padding: 0.85rem 1.5rem;
+        transition: background 160ms ease;
+      }
+      .tool-cta-link:hover { background: var(--crimson); }
+
+      .archive-footer {
+        margin-top: 3rem; padding: 2rem 3rem;
+        border-top: 1px solid var(--rule);
+      }
+      .archive-footer-inner {
+        max-width: 1200px; margin: 0 auto;
+        display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+      }
+      .footer-name { font-family: var(--font-mono); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
+      .footer-link { font-family: var(--font-mono); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); text-decoration: none; transition: color 160ms; }
+      .footer-link:hover { color: var(--crimson); }
+
+      @media (max-width: 900px) {
+        .site-nav { padding: 0.75rem 1.5rem; }
+        .archive-header { padding: 2.5rem 1.5rem 2rem; }
+        .archive-grid { grid-template-columns: 1fr; padding: 1.5rem; }
+        .email-section { padding: 0 1.5rem; }
+        .tool-cta { padding: 2rem 1.5rem; }
+        .archive-footer { padding: 2rem 1.5rem; }
+        .archive-meta { gap: 1.5rem; flex-wrap: wrap; }
+      }
+      @media (min-width: 600px) and (max-width: 900px) {
+        .archive-grid { grid-template-columns: repeat(2, 1fr); }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="site-nav">
+      <a class="site-nav-home t-mono t-upper" href="/">The Material Record</a>
+    </nav>
+
+    <header class="archive-header">
+      <p class="archive-kicker t-mono t-upper">A Material Archive</p>
+      <h1 class="archive-title">Twelve Epochs</h1>
+      <p class="archive-sub">
+        A documented history of the skirt across five thousand years — twelve eras,
+        from the Kaunakes of ancient Sumer to the 3D-printed polymers of the 21st century.
+      </p>
+      <div class="archive-meta">
+        <div class="archive-meta-item">
+          <span class="archive-meta-value t-mono">12</span>
+          <span class="archive-meta-label t-mono t-upper">Documented eras</span>
+        </div>
+        <div class="archive-meta-item">
+          <span class="archive-meta-value t-mono">5,000</span>
+          <span class="archive-meta-label t-mono t-upper">Years of history</span>
+        </div>
+        <div class="archive-meta-item">
+          <span class="archive-meta-value t-mono">60</span>
+          <span class="archive-meta-label t-mono t-upper">Archival images</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="archive-grid">
+      {eras.map((era) => {
+        const eraNum = String(era.era_index).padStart(2, '0');
+        const folder = ERA_FOLDERS[era.era_index];
+        const slug   = ERA_SLUGS[era.era_index];
+        return (
+          <a class="archive-card" href={`/archive/${slug}/`}>
+            <img
+              class="card-thumb"
+              src={`/assets/${folder}/thumbs/000001.webp`}
+              alt={era.icrawler_queries[0] ?? era.title}
+              loading="lazy"
+              decoding="async"
+            />
+            <p class="card-epoch t-mono t-upper">Epoch {eraNum}</p>
+            <p class="card-number t-mono">{eraNum}</p>
+            <p class="card-period t-mono">{era.period}</p>
+            <h2 class="card-title">{era.title}</h2>
+            <p class="card-impact">{era.cultural_impact}</p>
+            <span class="card-arrow t-mono t-upper">Read &rarr;</span>
+          </a>
+        );
+      })}
+    </main>
+
+    <!-- Tool CTA -->
+    <div class="tool-cta">
+      <div class="tool-cta-text">
+        <p class="tool-cta-label t-mono t-upper">Interactive Tool</p>
+        <h2 class="tool-cta-title">Trend Revival Clock</h2>
+        <p class="tool-cta-desc">
+          Apply Laver's Law to any fashion trend. Enter a garment and its peak year
+          to see the full 150-year cycle — and when the next revival window opens.
+        </p>
+      </div>
+      <a class="tool-cta-link t-mono t-upper" href="/tools/trend-revival-clock/">
+        Open the Clock &rarr;
+      </a>
+    </div>
+
+    <!-- Email capture -->
+    <div class="email-section">
+      <EmailCapture />
+    </div>
+
+    <footer class="archive-footer">
+      <div class="archive-footer-inner">
+        <span class="footer-name t-mono t-upper">The Material Record</span>
+        <div style="display:flex;gap:2rem;">
+          <a class="footer-link t-mono t-upper" href="/">Home</a>
+          <a class="footer-link t-mono t-upper" href="/tools/trend-revival-clock/">Trend Clock</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
