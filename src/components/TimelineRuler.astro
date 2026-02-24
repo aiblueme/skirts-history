@@ -1,0 +1,31 @@
+---
+interface Era {
+  era_index: number;
+  title: string;
+  period: string;
+}
+
+interface Props {
+  eras: Era[];
+}
+
+const { eras } = Astro.props;
+---
+
+<nav id="timeline-ruler" aria-label="Era navigation">
+  {
+    eras.map((era) => (
+      <a
+        href={`#era-${era.era_index}`}
+        class="ruler-item"
+        data-era={era.era_index}
+        aria-label={`${era.title}, ${era.period}`}
+      >
+        <span class="ruler-label t-mono t-upper" style="font-size:0.55rem">
+          {String(era.era_index).padStart(2, '0')}
+        </span>
+        <span class="ruler-pip" />
+      </a>
+    ))
+  }
+</nav>

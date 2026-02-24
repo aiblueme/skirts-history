@@ -1,0 +1,307 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EraSection from '../components/EraSection.astro';
+import TimelineRuler from '../components/TimelineRuler.astro';
+import researchData from '../../research.json';
+
+// Directory names mapping era_index → folder name
+const ERA_FOLDERS: Record<number, string> = {
+  1:  '01_ancient_egypt_and_mesopotamia',
+  2:  '02_ancient_greece_and_rome',
+  3:  '03_the_middle_ages',
+  4:  '04_renaissance_and_farthingales',
+  5:  '05_baroque_and_rococo_panniers',
+  6:  '06_victorian_era_crinolines',
+  7:  '07_edwardian_sbend',
+  8:  '08_1920s_flapper',
+  9:  '09_1940s_rationing_and_new_look',
+  10: '10_1960s_miniskirt',
+  11: '11_1980s_power_dressing_and_puffballs',
+  12: '12_21st_century_and_gender_neutrality',
+};
+
+// Sort by era_index to guarantee order
+const eras = [...researchData].sort((a, b) => a.era_index - b.era_index);
+---
+
+<BaseLayout
+  title="The History of the Skirt — A Material Archive"
+  description="A documented history of the skirt across 5,000 years — twelve epochs, from Ancient Egypt to the 21st century."
+>
+  <TimelineRuler eras={eras} />
+
+  <!-- ============================================================
+       MASTHEAD
+       ============================================================ -->
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="masthead-left">
+        <p class="masthead-kicker t-mono t-upper">A Material Archive in Twelve Epochs</p>
+        <hr class="masthead-rule" />
+        <h1 class="masthead-title">
+          <span class="masthead-line masthead-line--serif-italic">The</span>
+          <span class="masthead-line masthead-line--serif-bold">History</span>
+          <span class="masthead-line masthead-line--serif-italic masthead-line--indent">of the</span>
+          <span class="masthead-line masthead-line--serif-bold masthead-line--indent-2">Skirt.</span>
+        </h1>
+        <hr class="masthead-rule masthead-rule--bottom" />
+      </div>
+
+      <div class="masthead-right">
+        <div class="masthead-meta-block">
+          <p class="masthead-meta-value t-mono">3000 BCE</p>
+          <p class="masthead-meta-label t-mono t-upper">First documented epoch</p>
+        </div>
+        <div class="masthead-meta-block">
+          <p class="masthead-meta-value t-mono">2024 CE</p>
+          <p class="masthead-meta-label t-mono t-upper">Terminal epoch</p>
+        </div>
+        <div class="masthead-meta-block">
+          <p class="masthead-meta-value t-mono">12</p>
+          <p class="masthead-meta-label t-mono t-upper">Documented eras</p>
+        </div>
+        <div class="masthead-meta-block">
+          <p class="masthead-meta-value t-mono">5</p>
+          <p class="masthead-meta-label t-mono t-upper">Continents</p>
+        </div>
+        <p class="masthead-scroll-cue t-mono t-upper">Scroll to begin &darr;</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       ERA SECTIONS
+       ============================================================ -->
+  <main id="main-content">
+    {
+      eras.map((era, i) => (
+        <EraSection
+          era_index={era.era_index}
+          title={era.title}
+          period={era.period}
+          historical_deep_dive={era.historical_deep_dive}
+          technical_specs={era.technical_specs}
+          cultural_impact={era.cultural_impact}
+          key_figures={era.key_figures}
+          icrawler_queries={era.icrawler_queries}
+          folder={ERA_FOLDERS[era.era_index]}
+          isFlipped={i % 2 !== 0}
+        />
+      ))
+    }
+  </main>
+
+  <!-- ============================================================
+       COLOPHON
+       ============================================================ -->
+  <footer class="colophon">
+    <div class="colophon-inner">
+      <hr class="colophon-rule" />
+      <div class="colophon-grid">
+        <div>
+          <p class="t-mono t-upper" style="font-size: 0.6rem; color: var(--muted); letter-spacing: 0.14em;">
+            The History of the Skirt
+          </p>
+          <p class="t-mono" style="font-size: 0.65rem; color: var(--muted); margin-top: 0.4rem; max-width: 40ch;">
+            A documented history across twelve eras, from the Kaunakes of ancient Sumer
+            to the 3D-printed polymers of the 21st century.
+          </p>
+        </div>
+        <div class="colophon-type">
+          <p class="t-mono t-upper" style="font-size: 0.55rem; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 0.3rem;">
+            Typefaces
+          </p>
+          <p class="t-mono" style="font-size: 0.6rem; color: var(--muted);">Playfair Display — Headers</p>
+          <p class="t-mono" style="font-size: 0.6rem; color: var(--muted);">IBM Plex Mono — Data</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+</BaseLayout>
+
+<style>
+  /* ============================================================
+     MASTHEAD
+     ============================================================ */
+  .masthead {
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    padding: 6rem 5rem;
+    background: var(--parchment);
+    position: relative;
+  }
+
+  .masthead-inner {
+    display: grid;
+    grid-template-columns: 7fr 3fr;
+    column-gap: 4rem;
+    align-items: end;
+    width: 100%;
+    max-width: 1400px;
+  }
+
+  .masthead-kicker {
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .masthead-rule {
+    border: none;
+    border-top: 2px solid var(--ink);
+    margin-bottom: 1.75rem;
+  }
+
+  .masthead-rule--bottom {
+    margin-top: 2rem;
+    margin-bottom: 0;
+  }
+
+  /* Stacked title block */
+  .masthead-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    line-height: 0.92;
+  }
+
+  .masthead-line {
+    display: block;
+  }
+
+  .masthead-line--serif-bold {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-style: normal;
+    font-size: clamp(4rem, 10vw, 9.5rem);
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  .masthead-line--serif-italic {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(2.5rem, 6vw, 5.5rem);
+    color: var(--sepia);
+    letter-spacing: -0.01em;
+  }
+
+  .masthead-line--indent {
+    padding-left: clamp(2rem, 5vw, 6rem);
+  }
+
+  .masthead-line--indent-2 {
+    padding-left: clamp(4rem, 10vw, 12rem);
+  }
+
+  /* Right metadata column */
+  .masthead-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-bottom: 0.25rem;
+    border-left: 1px solid var(--rule);
+    padding-left: 1.75rem;
+  }
+
+  .masthead-meta-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .masthead-meta-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .masthead-meta-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+  }
+
+  .masthead-scroll-cue {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-top: 1rem;
+  }
+
+  /* ============================================================
+     MAIN CONTENT
+     ============================================================ */
+  #main-content {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ============================================================
+     COLOPHON
+     ============================================================ */
+  .colophon {
+    padding: 3rem 5rem 4rem;
+    background: var(--parchment);
+  }
+
+  .colophon-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .colophon-rule {
+    border: none;
+    border-top: 2px solid var(--ink);
+    margin-bottom: 2rem;
+  }
+
+  .colophon-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 4rem;
+    align-items: start;
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 900px) {
+    .masthead {
+      padding: 4rem 1.5rem;
+      min-height: auto;
+      padding-top: 6rem;
+    }
+
+    .masthead-inner {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+
+    .masthead-right {
+      border-left: none;
+      border-top: 1px solid var(--rule);
+      padding-left: 0;
+      padding-top: 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .masthead-scroll-cue {
+      grid-column: 1 / -1;
+    }
+
+    .colophon {
+      padding: 2rem 1.5rem;
+    }
+
+    .colophon-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+</style>

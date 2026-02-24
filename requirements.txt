@@ -1,0 +1,17 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# requirements.txt — Skirts History Image Crawler
+# Install: pip install -r requirements.txt
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Core crawler library
+icrawler>=0.6.6
+
+# Image handling (icrawler dependency; pinned for stability)
+Pillow>=10.0.0
+
+# HTTP client (icrawler dependency)
+requests>=2.31.0
+
+# HTML parsing used by icrawler's built-in parsers
+beautifulsoup4>=4.12.0
+lxml>=5.1.0

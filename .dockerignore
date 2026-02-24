@@ -1,0 +1,11 @@
+node_modules
+.venv
+dist
+.astro
+*.log
+*.py
+requirements.txt
+completed_queries.json
+scrape_status.log
+fashion_crawler.py
+.git

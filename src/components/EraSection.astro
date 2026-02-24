@@ -1,0 +1,448 @@
+---
+interface TechnicalSpecs {
+  fabrics: string[];
+  support_structures: string[];
+  sewing_techniques: string[];
+}
+
+interface Props {
+  era_index: number;
+  title: string;
+  period: string;
+  historical_deep_dive: string;
+  technical_specs: TechnicalSpecs;
+  cultural_impact: string;
+  key_figures: string[];
+  icrawler_queries: string[];
+  folder: string;
+  isFlipped: boolean;
+}
+
+const {
+  era_index,
+  title,
+  period,
+  historical_deep_dive,
+  technical_specs,
+  cultural_impact,
+  key_figures,
+  icrawler_queries,
+  folder,
+  isFlipped,
+} = Astro.props;
+
+// Extract first two sentences for the teaser
+const sentences = historical_deep_dive.match(/[^.!?]+[.!?]+/g) ?? [historical_deep_dive];
+const teaser = sentences.slice(0, 2).join(' ').trim();
+
+const eraNum = String(era_index).padStart(2, '0');
+
+// Image paths — all WebP, thumbs sub-folder for the small versions
+const images = [1, 2, 3, 4, 5].map((n) => {
+  const stem = String(n).padStart(6, '0');
+  return {
+    full:  `/assets/${folder}/${stem}.webp`,
+    thumb: `/assets/${folder}/thumbs/${stem}.webp`,
+    alt:   icrawler_queries[n - 1] ?? `${title} — image ${n}`,
+  };
+});
+
+const primaryId = `era-primary-${era_index}`;
+---
+
+<section
+  id={`era-${era_index}`}
+  class:list={['era-section', { 'era-section--flipped': isFlipped }]}
+  data-era-index={era_index}
+>
+  <!-- Hidden panel data store -->
+  <div
+    id={`panel-data-${era_index}`}
+    hidden
+    data-title={title}
+    data-period={period}
+    data-body={historical_deep_dive}
+  />
+
+  <!-- ERA NUMBER BANNER -->
+  <div class="era-number-banner">
+    <span class="t-mono t-upper" style="font-size:0.6rem;color:var(--muted);letter-spacing:0.14em;">Epoch</span>
+    <span class="era-numeral t-mono">{eraNum}</span>
+  </div>
+
+  <div class="era-inner">
+    <!-- CONTENT COLUMN -->
+    <div class="era-content">
+      <p class="era-period t-mono t-upper">{period}</p>
+
+      <h2 class="era-title">{title}</h2>
+
+      <blockquote class="era-impact">{cultural_impact}</blockquote>
+
+      <p class="era-teaser">{teaser}</p>
+
+      <button
+        class="era-read-more t-mono t-upper"
+        data-panel-trigger={String(era_index)}
+        aria-controls="side-panel"
+        aria-expanded="false"
+      >
+        Read the full account &rarr;
+      </button>
+
+      <!-- Technical specs -->
+      <div class="era-specs">
+        <p class="specs-label t-mono t-upper">Fabrication Data</p>
+        <div class="specs-rule" />
+        <div class="specs-grid">
+          <div class="specs-col">
+            <p class="specs-col-header t-mono t-upper">Fabrics</p>
+            {technical_specs.fabrics.map((f) => <p class="specs-item t-mono">{f}</p>)}
+          </div>
+          <div class="specs-col">
+            <p class="specs-col-header t-mono t-upper">Structures</p>
+            {technical_specs.support_structures.map((s) => <p class="specs-item t-mono">{s}</p>)}
+          </div>
+          <div class="specs-col">
+            <p class="specs-col-header t-mono t-upper">Techniques</p>
+            {technical_specs.sewing_techniques.map((t) => <p class="specs-item t-mono">{t}</p>)}
+          </div>
+        </div>
+      </div>
+
+      <p class="era-figures t-mono">
+        <span class="t-upper" style="font-size:0.6rem;color:var(--muted);letter-spacing:0.12em;">Key Figures — </span>
+        {key_figures.join(' · ')}
+      </p>
+    </div>
+
+    <!-- IMAGE COLUMN -->
+    <div class="era-images" data-era-gallery={era_index}>
+      <!-- Primary image — src is swapped by thumbnail clicks -->
+      <div class="era-image-primary">
+        <img
+          id={primaryId}
+          src={images[0].full}
+          alt={images[0].alt}
+          loading={era_index === 1 ? 'eager' : 'lazy'}
+          decoding="async"
+        />
+      </div>
+
+      <!-- Thumbnail strip: shows thumbs/N.webp; data-full points to full WebP -->
+      <div class="era-thumbnails" role="list" aria-label={`${title} — additional images`}>
+        {
+          images.map((img, i) => (
+            <button
+              class:list={['era-thumb', { 'is-active': i === 0 }]}
+              data-full={img.full}
+              data-alt={img.alt}
+              aria-label={img.alt}
+              role="listitem"
+            >
+              <img
+                src={img.thumb}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                decoding="async"
+              />
+            </button>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Scoped interaction script — one per section, uses closure over era_index -->
+<script define:vars={{ era_index, primaryId }}>
+  (function () {
+    const gallery = document.querySelector(`[data-era-gallery="${era_index}"]`);
+    if (!gallery) return;
+
+    const primaryImg = document.getElementById(primaryId);
+    const thumbBtns = gallery.querySelectorAll('.era-thumb');
+
+    thumbBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const fullSrc = btn.dataset.full;
+        const fullAlt = btn.dataset.alt;
+        if (!fullSrc || primaryImg.src.endsWith(fullSrc.split('/').pop())) {
+          // Already showing this image — still update active state
+        }
+
+        // Fade-swap the primary image
+        primaryImg.style.opacity = '0';
+        primaryImg.style.transition = 'opacity 180ms ease';
+        setTimeout(() => {
+          primaryImg.src = fullSrc;
+          primaryImg.alt = fullAlt;
+          primaryImg.style.opacity = '1';
+        }, 180);
+
+        // Update active thumbnail
+        thumbBtns.forEach((b) => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+      });
+    });
+  })();
+</script>
+
+<style>
+  /* ============================================================
+     ERA SECTION
+     ============================================================ */
+  .era-section {
+    border-top: 1px solid var(--rule);
+    padding: 5rem 5rem;
+    position: relative;
+  }
+
+  .era-section:first-of-type {
+    border-top: 2px solid var(--ink);
+  }
+
+  .era-number-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin-bottom: 2rem;
+  }
+
+  .era-numeral {
+    font-size: clamp(4rem, 8vw, 7rem);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--cream);
+    -webkit-text-stroke: 1.5px var(--rule);
+    user-select: none;
+  }
+
+  /* Two-column inner layout */
+  .era-inner {
+    display: grid;
+    grid-template-columns: 5fr 4fr;
+    column-gap: 4rem;
+    align-items: start;
+  }
+
+  .era-section--flipped .era-inner {
+    grid-template-columns: 4fr 5fr;
+  }
+
+  .era-section--flipped .era-images {
+    order: -1;
+  }
+
+  /* ============================================================
+     CONTENT COLUMN
+     ============================================================ */
+  .era-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .era-period {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .era-title {
+    font-family: var(--font-serif);
+    font-size: clamp(2.25rem, 4vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .era-impact {
+    border-left: 3px solid var(--crimson);
+    padding-left: 1rem;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--sepia);
+    line-height: 1.6;
+  }
+
+  .era-teaser {
+    font-size: 1.0625rem;
+    line-height: 1.72;
+    color: var(--ink);
+    max-width: 62ch;
+  }
+
+  .era-read-more {
+    display: inline-block;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--ink);
+    padding: 0 0 0.1rem 0;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    transition: color 160ms ease, border-color 160ms ease;
+  }
+
+  .era-read-more:hover {
+    color: var(--crimson);
+    border-color: var(--crimson);
+  }
+
+  /* ============================================================
+     TECH SPECS
+     ============================================================ */
+  .era-specs {
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .specs-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .specs-rule {
+    height: 1px;
+    background: var(--ink);
+    margin-bottom: 0.75rem;
+  }
+
+  .specs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 1.5rem;
+  }
+
+  .specs-col-header {
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .specs-item {
+    font-size: 0.7rem;
+    line-height: 1.5;
+    color: var(--sepia);
+    padding: 0.15rem 0;
+    border-bottom: 1px solid rgba(196, 174, 133, 0.3);
+  }
+
+  .era-figures {
+    font-size: 0.7rem;
+    color: var(--muted);
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--rule);
+    line-height: 1.6;
+  }
+
+  /* ============================================================
+     IMAGE COLUMN
+     ============================================================ */
+  .era-images {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: sticky;
+    top: 2rem;
+    align-self: start;
+  }
+
+  .era-image-primary {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: var(--cream);
+  }
+
+  .era-image-primary img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    filter: sepia(8%) contrast(1.05);
+    /* transition is set inline by JS during swap */
+  }
+
+  /* ============================================================
+     THUMBNAIL STRIP
+     ============================================================ */
+  .era-thumbnails {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.4rem;
+  }
+
+  .era-thumb {
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--cream);
+    border: 2px solid transparent;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 0;
+    transition: border-color 160ms ease;
+    position: relative;
+  }
+
+  .era-thumb:hover {
+    border-color: var(--rule);
+  }
+
+  .era-thumb.is-active {
+    border-color: var(--crimson);
+  }
+
+  .era-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: sepia(8%) contrast(1.05);
+    transition: filter 200ms ease, transform 200ms ease;
+  }
+
+  .era-thumb:hover img {
+    filter: sepia(0%) contrast(1.08);
+    transform: scale(1.04);
+  }
+
+  .era-thumb.is-active img {
+    filter: sepia(0%) contrast(1.08);
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 900px) {
+    .era-section { padding: 3rem 1.5rem; }
+
+    .era-inner {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+
+    .era-section--flipped .era-images { order: 0; }
+
+    .era-images { position: static; }
+
+    .specs-grid {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  }
+</style>

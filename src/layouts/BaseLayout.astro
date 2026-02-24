@@ -1,0 +1,372 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'The History of the Skirt',
+  description = 'A material archive of the skirt across 5,000 years of civilisation — documented in twelve epochs.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style is:global>
+      /* ============================================================
+         RESET & BASE
+         ============================================================ */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --ink: #0d0a05;
+        --parchment: #f2ebd9;
+        --cream: #ede5ce;
+        --rule: #c4ae85;
+        --crimson: #9b1c1c;
+        --sepia: #5c3d1e;
+        --muted: #7a6a52;
+        --mono-accent: #1c3a2e;
+        --panel-bg: #1a1510;
+        --panel-fg: #f2ebd9;
+
+        --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+        --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+        --font-body: Georgia, 'Times New Roman', serif;
+
+        --border-radius: 2px;
+        --transition-fast: 180ms ease;
+        --transition-panel: 380ms cubic-bezier(0.77, 0, 0.175, 1);
+      }
+
+      html {
+        background: var(--parchment);
+        color: var(--ink);
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      body {
+        font-family: var(--font-body);
+        font-size: 1.0625rem;
+        line-height: 1.72;
+        background: var(--parchment);
+        overflow-x: hidden;
+      }
+
+      /* ============================================================
+         TYPOGRAPHY UTILITIES
+         ============================================================ */
+      .t-mono {
+        font-family: var(--font-mono);
+        letter-spacing: 0.04em;
+      }
+
+      .t-serif {
+        font-family: var(--font-serif);
+      }
+
+      .t-upper {
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      /* ============================================================
+         STRUCTURAL RULES
+         ============================================================ */
+      hr.rule {
+        border: none;
+        border-top: 1px solid var(--rule);
+        margin: 0;
+      }
+
+      hr.rule--heavy {
+        border-top: 2px solid var(--ink);
+      }
+
+      /* ============================================================
+         TIMELINE RULER (fixed right-side nav)
+         ============================================================ */
+      #timeline-ruler {
+        position: fixed;
+        right: 1.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: flex-end;
+      }
+
+      .ruler-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        text-decoration: none;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 0.625rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        transition: color var(--transition-fast);
+        white-space: nowrap;
+      }
+
+      .ruler-item:hover {
+        color: var(--ink);
+      }
+
+      .ruler-item .ruler-pip {
+        display: block;
+        width: 20px;
+        height: 1px;
+        background: var(--rule);
+        transition: width var(--transition-fast), background var(--transition-fast);
+        flex-shrink: 0;
+      }
+
+      .ruler-item .ruler-label {
+        opacity: 0;
+        transition: opacity var(--transition-fast);
+        text-align: right;
+      }
+
+      .ruler-item:hover .ruler-label,
+      .ruler-item.is-active .ruler-label {
+        opacity: 1;
+      }
+
+      .ruler-item.is-active .ruler-pip {
+        width: 32px;
+        background: var(--crimson);
+      }
+
+      .ruler-item.is-active {
+        color: var(--crimson);
+      }
+
+      /* ============================================================
+         SIDE PANEL
+         ============================================================ */
+      #side-panel {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        pointer-events: none;
+      }
+
+      #side-panel.is-open {
+        pointer-events: all;
+      }
+
+      #side-panel-scrim {
+        position: absolute;
+        inset: 0;
+        background: rgba(13, 10, 5, 0);
+        transition: background var(--transition-panel);
+        cursor: pointer;
+      }
+
+      #side-panel.is-open #side-panel-scrim {
+        background: rgba(13, 10, 5, 0.55);
+      }
+
+      #side-panel-drawer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(680px, 90vw);
+        background: var(--panel-bg);
+        color: var(--panel-fg);
+        padding: 3rem 3rem 3rem 3.5rem;
+        overflow-y: auto;
+        transform: translateX(100%);
+        transition: transform var(--transition-panel);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      #side-panel.is-open #side-panel-drawer {
+        transform: translateX(0);
+      }
+
+      #panel-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: none;
+        border: 1px solid rgba(242, 235, 217, 0.25);
+        color: var(--panel-fg);
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        padding: 0.35rem 0.7rem;
+        cursor: pointer;
+        text-transform: uppercase;
+        border-radius: var(--border-radius);
+        transition: border-color var(--transition-fast), color var(--transition-fast);
+      }
+
+      #panel-close:hover {
+        border-color: var(--panel-fg);
+        color: var(--panel-fg);
+      }
+
+      #panel-era-kicker {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(242, 235, 217, 0.45);
+        border-top: 1px solid rgba(242, 235, 217, 0.15);
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+      }
+
+      #panel-era-title {
+        font-family: var(--font-serif);
+        font-size: 2.25rem;
+        font-weight: 700;
+        line-height: 1.15;
+        color: var(--panel-fg);
+      }
+
+      #panel-era-period {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: rgba(242, 235, 217, 0.5);
+        letter-spacing: 0.06em;
+      }
+
+      #panel-body {
+        font-family: var(--font-body);
+        font-size: 1rem;
+        line-height: 1.8;
+        color: rgba(242, 235, 217, 0.88);
+        border-left: 2px solid var(--crimson);
+        padding-left: 1.25rem;
+      }
+
+      /* ============================================================
+         SCROLL BEHAVIOUR
+         ============================================================ */
+      html {
+        scroll-behavior: smooth;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <slot />
+
+    <!-- SIDE PANEL -->
+    <div id="side-panel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="panel-era-title">
+      <div id="side-panel-scrim"></div>
+      <div id="side-panel-drawer">
+        <button id="panel-close" aria-label="Close panel">ESC / CLOSE</button>
+        <p id="panel-era-kicker">Full Historical Account</p>
+        <h2 id="panel-era-title"></h2>
+        <p id="panel-era-period"></p>
+        <div id="panel-body"></div>
+      </div>
+    </div>
+
+    <script>
+      // === SIDE PANEL ===
+      const panel = document.getElementById('side-panel') as HTMLElement;
+      const panelTitle = document.getElementById('panel-era-title') as HTMLElement;
+      const panelPeriod = document.getElementById('panel-era-period') as HTMLElement;
+      const panelBody = document.getElementById('panel-body') as HTMLElement;
+      const panelClose = document.getElementById('panel-close') as HTMLButtonElement;
+      const panelScrim = document.getElementById('side-panel-scrim') as HTMLElement;
+
+      function openPanel(eraIndex: string) {
+        const contentEl = document.getElementById(`panel-data-${eraIndex}`);
+        if (!contentEl) return;
+        panelTitle.textContent = contentEl.dataset.title ?? '';
+        panelPeriod.textContent = contentEl.dataset.period ?? '';
+        panelBody.textContent = contentEl.dataset.body ?? '';
+        panel.setAttribute('aria-hidden', 'false');
+        panel.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+        panelClose.focus();
+      }
+
+      function closePanel() {
+        panel.setAttribute('aria-hidden', 'true');
+        panel.classList.remove('is-open');
+        document.body.style.overflow = '';
+      }
+
+      document.querySelectorAll('[data-panel-trigger]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          openPanel((btn as HTMLElement).dataset.panelTrigger ?? '');
+        });
+      });
+
+      panelClose.addEventListener('click', closePanel);
+      panelScrim.addEventListener('click', closePanel);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closePanel();
+      });
+
+      // === TIMELINE RULER ACTIVE STATE ===
+      const eraSections = document.querySelectorAll<HTMLElement>('.era-section');
+      const rulerItems = document.querySelectorAll<HTMLElement>('.ruler-item');
+
+      const rulerObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const idx = (entry.target as HTMLElement).dataset.eraIndex;
+              rulerItems.forEach((item) => item.classList.remove('is-active'));
+              const active = document.querySelector<HTMLElement>(`.ruler-item[data-era="${idx}"]`);
+              active?.classList.add('is-active');
+            }
+          });
+        },
+        {
+          threshold: 0,
+          rootMargin: '-30% 0px -60% 0px',
+        }
+      );
+
+      eraSections.forEach((section) => rulerObserver.observe(section));
+    </script>
+  </body>
+</html>

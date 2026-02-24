@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.*
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+scrape_status.log
+
+# Source images — only WebP derivatives are committed
+assets/**/*.jpg
+assets/**/*.jpeg
+assets/**/*.png
+
+# OS
+.DS_Store
+Thumbs.db
