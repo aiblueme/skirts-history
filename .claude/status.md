@@ -9,7 +9,7 @@ security: done
 ux_ui: done
 repo_cleanup: done
 readme: done
-last_session: "2026-03-09"
+last_session: "2026-03-10"
 has_blockers: false
 ---
 
@@ -35,11 +35,12 @@ Agent: Claude Code
 - None
 
 ## Backlog
-- [P3] gzip_min_length is 1024 in nginx.conf; STANDARDS spec says 256 — negligible difference but worth noting
 - [P3] scroll-behavior: smooth in BaseLayout.astro CSS is anti-pattern #9, but project already has prefers-reduced-motion handling — confirm with Matt before removing
 - [P3] Assets folder is 97MB (120 WebP images) — total Docker image will be large; consider whether all era images are needed or if count can be trimmed
 
 ## Done
+- [x] Fix gzip_min_length: 1024 → 256 per STANDARDS spec — 2026-03-10 — commit 52a3c60
+- [x] Add MIT LICENSE — 2026-03-10 — commit a1bf3e0
 - [x] Security audit — 2026-03-09
 - [x] Repo/README cleanup — 2026-03-09
 - [x] UX/UI meta audit — 2026-03-09
