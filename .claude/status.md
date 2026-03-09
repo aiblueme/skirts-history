@@ -35,12 +35,12 @@ Agent: Claude Code
 - None
 
 ## Backlog
-- [P3] scroll-behavior: smooth in BaseLayout.astro CSS is anti-pattern #9, but project already has prefers-reduced-motion handling — confirm with Matt before removing
 - [P3] Assets folder is 97MB (120 WebP images) — total Docker image will be large; consider whether all era images are needed or if count can be trimmed
 
 ## Done
 - [x] Fix gzip_min_length: 1024 → 256 per STANDARDS spec — 2026-03-10 — commit 52a3c60
 - [x] Add MIT LICENSE — 2026-03-10 — commit a1bf3e0
+- [x] Remove scroll-behavior: smooth from BaseLayout.astro and [slug].astro (anti-pattern #9) — 2026-03-10
 - [x] Security audit — 2026-03-09
 - [x] Repo/README cleanup — 2026-03-09
 - [x] UX/UI meta audit — 2026-03-09
@@ -48,7 +48,7 @@ Agent: Claude Code
 ## Decisions Log
 - "Did not change nginx:1.27-alpine to nginx:alpine — pinned version is more secure than floating tag, deviates from STANDARDS wording but not intent" (2026-03-09)
 - "Used --crimson (#9b1c1c) for favicon SVG fill — matches project design system rather than STANDARDS default #1A1A1A" (2026-03-09)
-- "Did not remove scroll-behavior: smooth — project has correct prefers-reduced-motion override; removing would break UX without Matt's sign-off" (2026-03-09)
+- "Removed scroll-behavior: smooth from BaseLayout.astro and [slug].astro — Matt confirmed; kept prefers-reduced-motion block's transition-duration: 0.01ms override, removed only scroll-behavior: auto line from it" (2026-03-10)
 - "Set homepage.group=Projects in SWAG labels — generic fallback since no group was specified" (2026-03-09)
 
 ## Project Notes

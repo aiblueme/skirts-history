@@ -286,13 +286,6 @@ const {
         margin-top: 1.1em;
       }
 
-      /* ============================================================
-         SCROLL BEHAVIOUR
-         ============================================================ */
-      html {
-        scroll-behavior: smooth;
-      }
-
       /* Hide ruler on mobile/tablet — overlaps content */
       @media (max-width: 900px) {
         #timeline-ruler {
@@ -301,9 +294,6 @@ const {
       }
 
       @media (prefers-reduced-motion: reduce) {
-        html {
-          scroll-behavior: auto;
-        }
         *,
         *::before,
         *::after {

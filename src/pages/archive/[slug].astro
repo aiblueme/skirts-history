@@ -139,7 +139,7 @@ const jsonLd = {
         --font-body: Georgia, 'Times New Roman', serif;
       }
 
-      html { background: var(--parchment); color: var(--ink); font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+      html { background: var(--parchment); color: var(--ink); font-size: 16px; -webkit-font-smoothing: antialiased; }
       body { font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.72; background: var(--parchment); overflow-x: hidden; }
 
       .t-mono { font-family: var(--font-mono); letter-spacing: 0.04em; }
@@ -476,7 +476,6 @@ const jsonLd = {
       }
 
       @media (prefers-reduced-motion: reduce) {
-        html { scroll-behavior: auto; }
         *, *::before, *::after { transition-duration: 0.01ms !important; }
       }
     </style>
