@@ -9,3 +9,11 @@ completed_queries.json
 scrape_status.log
 fashion_crawler.py
 .git
+.github
+.claude
+.gitignore
+README.md
+*.md
+.env
+.env.*
+.DS_Store

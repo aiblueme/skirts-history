@@ -3,12 +3,31 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: skirts-history
+    container_name: skirts-history
     ports:
       - "8181:80"
     restart: unless-stopped
+    networks:
+      - swag-network
+    labels:
+      - "swag=enable"
+      - "swag_address=skirts-history"
+      - "swag_port=80"
+      - "swag_url=skirts-history.shellnode.lol"
+      - "homepage.instance=my-vps"
+      - "homepage.name=Skirts History"
+      - "homepage.group=Projects"
+      - "homepage.href=https://skirts-history.shellnode.lol"
+      - "homepage.icon=mdi-tshirt-crew"
+      - "homepage.description=A material archive of the skirt across 5,000 years"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+
+networks:
+  swag-network:
+    external: true
